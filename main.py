@@ -2,17 +2,17 @@ import random
 import statistics
 import simpy
 
-seed = 67
-interval = 10.0
+RANDOM_SEED = 67
+interval = 10
 timePerProcess = []
 quantity = 25
 instructionsPerCycleRange = [1, 10]
 ramRequiredRange = [1, 10]
-cpuInstructionsPerCicle = 3
+cpuInstructionsPerCicle = 6
 totalTime = 0
 
 
-def process(env, id, cpu, ram, waiting, arriveTime):
+def proces(env, id, cpu, ram, waiting, arriveTime):
     global totalTime
     global timePerProcess
     yield env.timeout(arriveTime)
@@ -32,7 +32,7 @@ def process(env, id, cpu, ram, waiting, arriveTime):
                 yield runningQueue
                 print('Process %d is running at %s' % (id, env.now))
                 yield env.timeout(1)
-                instructions -= instructionsPerCycleRange
+                instructions -= cpuInstructionsPerCicle
 
                 if instructions <= 0:
                     instructions = 0
@@ -54,12 +54,12 @@ def process(env, id, cpu, ram, waiting, arriveTime):
 def entry(env, cpu, ram, waiting):
     for i in range(quantity):
         startTime = random.expovariate(1.0 / interval)
-        env.process(process(env, i, cpu, ram, waiting, startTime))
+        env.process(proces(env, i, cpu, ram, waiting, startTime))
 
 
 if __name__ == '__main__':
-    random.seed(seed)
-    env = simpy.Environment
+    random.seed(RANDOM_SEED)
+    env = simpy.Environment()
     ram = simpy.Container(env, init=100, capacity=100)
     cpu = simpy.Resource(env, capacity=1)
     waiting = simpy.Resource(env, capacity=1)
@@ -67,7 +67,7 @@ if __name__ == '__main__':
     entry(env, cpu, ram, waiting)
     env.run()
 
-    averageTime = statistics.mean(timePerProcess)
+    averageTime = totalTime/quantity
     stdev = statistics.stdev(timePerProcess)
 
     print(
